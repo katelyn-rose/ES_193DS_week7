@@ -1,0 +1,76 @@
+
+---
+title: "Week 7 Workshop"
+author: "Katie Miller"
+date: "`r Sys.Date()`"
+output: word_document
+messages: false
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(lterdatasampler)
+
+library(performance)
+library(broom)
+library(flextable)
+library(ggeffects)
+library(car)
+library(naniar)
+```
+
+# Linear Models
+How does stem length _predict_ stem dry mass?
+
+```{r filtering-data}
+maples_data <- hbr_maples %>% 
+  filter(year == 2003 & watershed == "Reference")
+
+```
+
+Visualize missing data
+
+```{r missing-data-vis}
+gg_miss_var(maples_data)
+```
+
+
+Exploratory data visualization 
+
+```{r}
+ggplot(data = maples_data, aes(x= stem_length, y = stem_dry_mass)) +
+       geom_point()
+```
+
+Let's try a model
+
+```{r linear-model-maples}
+maples_model <- lm(stem_dry_mass ~ stem_length,
+                   data = maples_data)
+
+maples_model
+```
+
+Check assumptions
+
+I. linear relationship: yes! Plot in console 
+II. independence of errors: yes! (based on data collection)
+III. Homoskedasicity of errors: yes! (residuals vs. fitted plot)
+IV. Normally distrobuted errors: yes! (QQ plot of residuals)
+
+```{r checking-assumptions}
+par(mfrow = c(2, 2))
+plot(maples_model)
+```
+
+
+turn off 2 x 2 grid
+
+```{r turn-off-grid}
+dev.off()
+```
+
+
+
+
