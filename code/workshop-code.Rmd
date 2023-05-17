@@ -4,10 +4,11 @@ title: "Week 7 Workshop"
 author: "Katie Miller"
 date: "`r Sys.Date()`"
 output: word_document
-messages: false
+execute: 
+warning: FALSE
 ---
 
-```{r}
+```{r message = FALSE}
 library(tidyverse)
 library(here)
 library(lterdatasampler)
@@ -72,5 +73,60 @@ dev.off()
 ```
 
 
+# Putting together to communicate
+## model predictions
 
+```{r pulling-out-predictions}
+prediction <- ggpredict(maples_model, terms = "stem_length")
+```
+
+plot predictions 
+
+```{r}
+plot_prediction <- ggplot(data = maples_data, aes(x = stem_length, y = stem_dry_mass)) +
+  geom_point() +
+  geom_line(data = prediction, aes(x = x, y = predicted), color = "blue", linewidth = 1) +
+  #confidence interval
+  geom_ribbon(data = prediction, aes(x=x, y = predicted, ymin = conf.low, ymax = conf.high), alpha = 0.2)
+
+plot_prediction
+# same as previous plot 
+```
+
+# Create tables
+
+```{r model-summary-tables}
+model_summary <- summary(maples_model)
+
+model_squares <- anova(maples_model)
+```
+
+making a table
+
+```{r}
+model_squares_table <- tidy(model_squares) %>% 
+  # round the sum of squares and mean squares columns to have 5 digits (could be less)
+  mutate(across(sumsq:meansq, ~ round(.x, digits = 5))) %>% 
+  # round the F-statistic to have 1 digit
+  mutate(statistic = round(statistic, digits = 1)) %>% 
+  # replace the very very very small p value with < 0.001
+  mutate(p.value = case_when(
+    p.value < 0.001 ~ "< 0.001"
+  )) %>% 
+  # rename the stem_length cell to be meaningful
+  mutate(term = case_when(
+    term == "stem_length" ~ "Stem length (mm)",
+    TRUE ~ term
+  )) %>% 
+  # make the data frame a flextable object
+  flextable() %>% 
+  # change the header labels to be meaningful
+  set_header_labels(df = "Degrees of Freedom", 
+                    sumsq = "Sum of squares",
+                    meansq = "Mean squares",
+                    statistic = "F-statistic",
+                    p.value = "p-value")
+
+model_squares_table
+```
 
